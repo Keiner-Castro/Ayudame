@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tech Store</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    .layout { display: flex; }
+    .sidebar {
+      width: 250px;
+      background-color: #1a202c;
+      color: white;
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      height: 100vh;
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+    .sidebar.open { left: 0; }
+    .sidebar h2 { margin-bottom: 20px; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      margin: 10px 0;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .sidebar ul li:hover { color: #63b3ed; }
+    .close-sidebar {
+      font-size: 24px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    .main {
+      flex-grow: 1;
+      margin-left: 0;
+      padding: 80px 20px 20px 20px;
+      width: 100%;
+    }
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: #2b6cb0;
+      color: white;
+      z-index: 999;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .navbar h1 { font-size: 24px; }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+    .product {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+      cursor: pointer;
+    }
+    .product:hover { 
+      transform: translateY(-10px); 
+      box-shadow: 0 15px 20px rgba(0,0,0,0.2);
+    }
+    .product-img-container {
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+      background: #f9f9f9;
+    }
+    .product img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+    .product:hover img {
+      transform: scale(1.05);
+    }
+    .product-content {
+      padding: 20px;
+    }
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .product h3 {
+      font-size: 18px;
+      margin-bottom: 5px;
+      color: #2d3748;
+    }
+    .heart-icon {
+      color: #e2e8f0;
+      font-size: 22px;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .heart-icon.active, .heart-icon:hover {
+      color: #e53e3e;
+    }
+    .product-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2b6cb0;
+      margin: 10px 0;
+    }
+    .product-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .stars {
+      color: #f6ad55;
+      margin-right: 5px;
+    }
+    .reviews {
+      color: #718096;
+      font-size: 14px;
+    }
+    .product-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .add-to-cart {
+      flex-grow: 1;
+      padding: 10px 15px;
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .add-to-cart i {
+      margin-right: 5px;
+    }
+    .add-to-cart:hover { background-color: #2c5282; }
+    .category-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(49, 130, 206, 0.9);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 10;
+    }
+    .cart-toggle {
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .cart {
+      position: fixed;
+      top: 60px;
+      right: -350px;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 1001;
+      transition: right 0.3s ease;
+    }
+    .cart.open { right: 20px; }
+    .cart .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .cart button {
+      padding: 8px 12px;
+      background-color: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .products { grid-template-columns: 1fr; }
+      .cart { width: 90%; right: -100%; }
+      .cart.open { right: 5%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <span class="close-sidebar" onclick="toggleSidebar()">✖</span>
+      <h2>Categorías</h2>
+      <ul>
+        <li onclick="filterProducts('Laptops')">Laptops</li>
+        <li onclick="filterProducts('Mouse')">Mouse</li>
+        <li onclick="filterProducts('Monitor')">Monitor</li>
+        <li onclick="filterProducts('Teclado')">Teclado</li>
+        <li onclick="filterProducts('CPU')">CPU</li>
+      </ul>
+    </div>
+
+    <div class="main">
+      <div class="navbar">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <h1>Tech Store</h1>
+        <div class="cart-toggle" onclick="toggleCart()">
+          🛒 <span id="cart-count">0</span>
+        </div>
+      </div>
+
+      <div class="products" id="product-list"></div>
+    </div>
+  </div>
+
+  <div class="cart" id="cart">
+    <h2>Carrito</h2>
+    <div id="cart-items"></div>
+    <h3>Total: $<span id="total-price">0</span></h3>
+    <button onclick="simulatePurchase()">Comprar</button>
+  </div>
+
+  <script>
+    const products = [
+      { 
+        id: 1, 
+        name: "Laptop Dell XPS 13", 
+        category: "Laptops", 
+        price: 1500, 
+        img: "https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dell-client-products/notebooks/xps-notebooks/xps-13-9315/media-gallery/notebook-xps-9315-nt-blue-gallery-1.psd?fmt=png-alpha&pscan=auto&scl=1&hei=402&wid=402&qlt=100,1&resMode=sharp2&size=402,402&chrss=full", 
+        rating: 4.7, 
+        reviews: 128,
+        description: "El Dell XPS 13 es un portátil ultradelgado con pantalla InfinityEdge, procesador Intel Core de 11ª generación, hasta 16GB de RAM y SSD de alta velocidad. Perfecto para profesionales y estudiantes que buscan rendimiento y portabilidad.",
+        specs: [
+          "Procesador: Intel Core i7-1165G7",
+          "Memoria: 16GB LPDDR4x",
+          "Almacenamiento: 512GB SSD NVMe",
+          "Pantalla: 13.4\" FHD+ (1920 x 1200) InfinityEdge",
+          "Batería: Hasta 12 horas de duración"
+        ]
+      },
+      { 
+        id: 2, 
+        name: "Mouse Logitech G Pro X", 
+        category: "Mouse", 
+        price: 80, 
+        img: "https://resource.logitechg.com/w_692,c_limit,q_auto,f_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-superlight/pro-x-superlight-black-gallery-1.png", 
+        rating: 4.9, 
+        reviews: 342,
+        description: "El Logitech G Pro X Superlight es un mouse gaming ultraligero diseñado para esports. Con menos de 63 gramos de peso, sensor HERO 25K y tecnología LIGHTSPEED para conexión inalámbrica sin lag.",
+        specs: [
+          "Sensor: HERO 25K",
+          "Peso: <63g",
+          "Conexión: Inalámbrica LIGHTSPEED",
+          "Botones programables: 5",
+          "Duración de batería: Hasta 70 horas"
+        ]
+      },
+      { 
+        id: 3, 
+        name: "Monitor LG UltraGear 27\"", 
+        category: "Monitor", 
+        price: 350, 
+        img: "https://www.lg.com/us/images/monitors/md08003534/gallery/desktop-01.jpg", 
+        rating: 4.5, 
+        reviews: 89,
+        description: "El LG UltraGear es un monitor gaming de 27 pulgadas con panel IPS, resolución QHD (2560x1440), frecuencia de actualización de 144Hz y tiempo de respuesta de 1ms. Compatible con NVIDIA G-SYNC y AMD FreeSync Premium.",
+        specs: [
+          "Tamaño: 27 pulgadas",
+          "Panel: IPS",
+          "Resolución: 2560x1440 (QHD)",
+          "Frecuencia: 144Hz",
+          "Tiempo de respuesta: 1ms",
+          "HDR: HDR10"
+        ]
+      },
+      { 
+        id: 4, 
+        name: "Teclado Corsair K70 RGB", 
+        category: "Teclado", 
+        price: 150, 
+        img: "https://cwsmgmt.corsair.com/pdp/K70-RGB-PRO/Content/k70_rgb_pro_pdp_lightingcontrol_01.jpg", 
+        rating: 4.6, 
+        reviews: 215,
+        description: "El Corsair K70 RGB es un teclado mecánico premium con switches Cherry MX, retroiluminación RGB por tecla, construcción de aluminio y controles multimedia dedicados. Incluye reposamuñecas desmontable.",
+        specs: [
+          "Switches: Cherry MX Red",
+          "Formato: Completo con teclado numérico",
+          "Retroiluminación: RGB por tecla",
+          "Material: Aluminio cepillado",
+          "Características: Controles multimedia, USB passthrough"
+        ]
+      },
+      { 
+        id: 5, 
+        name: "CPU AMD Ryzen 7 5800X", 
+        category: "CPU", 
+        price: 320, 
+        img: "https://www.amd.com/system/files/2020-10/616656-amd-ryzen-7-5000-series-PIB-1260x709_0.png", 
+        rating: 4.8, 
+        reviews: 176,
+        description: "El AMD Ryzen 7 5800X es un procesador de 8 núcleos y 16 hilos basado en la arquitectura Zen 3. Con velocidades de hasta 4.7GHz, es ideal para gaming y creación de contenido. Soporta PCIe 4.0 y viene desbloqueado para overclocking.",
+        specs: [
+          "Núcleos/Hilos: 8/16",
+          "Frecuencia base: 3.8GHz",
+          "Frecuencia turbo: Hasta 4.7GHz",
+          "Caché L3: 32MB",
+          "TDP: 105W",
+          "Socket: AM4"
+        ]
+      },
+      { 
+        id: 6, 
+        name: "Laptop HP Spectre x360", 
+        category: "Laptops", 
+        price: 1400, 
+        img: "https://ssl-product-images.www8-hp.com/digmedialib/prodimg/lowres/c08037217.png", 
+        rating: 4.4, 
+        reviews: 98,
+        description: "El HP Spectre x360 es un portátil convertible premium con bisagra de 360°, pantalla táctil 4K OLED, procesador Intel Core i7, y hasta 16GB de RAM. Su diseño elegante en aluminio incluye características de seguridad avanzadas.",
+        specs: [
+          "Procesador: Intel Core i7-1165G7",
+          "Memoria: 16GB DDR4",
+          "Almacenamiento: 1TB SSD PCIe NVMe",
+          "Pantalla: 13.3\" 4K OLED táctil",
+          "Batería: Hasta 10 horas",
+          "Características: Lector de huellas, cámara IR"
+        ]
+      },
+    ];
+
+    const cart = [];
+    const favorites = new Set();
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+    }
+
+    function toggleCart() {
+      const cartEl = document.getElementById('cart');
+      cartEl.classList.toggle('open');
+    }
+
+    function updateCartDisplay() {
+      const cartItems = document.getElementById('cart-items');
+      const cartCount = document.getElementById('cart-count');
+      const totalPriceEl = document.getElementById('total-price');
+      cartItems.innerHTML = '';
+      cartCount.textContent = cart.length;
+
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        total += item.price;
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <span>${item.name} - $${item.price}</span>
+          <button onclick="removeFromCart(${index})">✖</button>
+        `;
+        cartItems.appendChild(div);
+      });
+
+      totalPriceEl.textContent = total;
+    }
+
+    function addToCart(product, event) {
+      // Detener la propagación del evento para evitar la redirección
+      event.stopPropagation();
+      
+      cart.push(product);
+      updateCartDisplay();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartDisplay();
+    }
+
+    function toggleFavorite(productId, event) {
+      // Detener la propagación del evento para evitar la redirección
+      event.stopPropagation();
+      
+      const heartIcon = document.getElementById(`heart-${productId}`);
+      
+      if (favorites.has(productId)) {
+        favorites.delete(productId);
+        heartIcon.classList.remove('active');
+      } else {
+        favorites.add(productId);
+        heartIcon.classList.add('active');
+        
+        // Añadir al carrito cuando se marca como favorito
+        const product = products.find(p => p.id === productId);
+        if (product) {
+          cart.push(product);
+          updateCartDisplay();
+        }
+      }
+    }
+
+    function getStarRating(rating) {
+      const fullStars = Math.floor(rating);
+      const halfStar = rating % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+      
+      let stars = '';
+      
+      // Estrellas completas
+      for (let i = 0; i < fullStars; i++) {
+        stars += '<i class="fas fa-star"></i>';
+      }
+      
+      // Media estrella si es necesario
+      if (halfStar) {
+        stars += '<i class="fas fa-star-half-alt"></i>';
+      }
+      
+      // Estrellas vacías
+      for (let i = 0; i < emptyStars; i++) {
+        stars += '<i class="far fa-star"></i>';
+      }
+      
+      return stars;
+    }
+
+    function simulatePurchase() {
+      if (cart.length === 0) {
+        alert("Tu carrito está vacío");
+        return;
+      }
+      alert("Compra realizada con éxito");
+      cart.length = 0;
+      updateCartDisplay();
+    }
+
+    function goToProductDetail(productId) {
+      // Guardar el producto seleccionado en localStorage para recuperarlo en la página de detalle
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        localStorage.setItem('selectedProduct', JSON.stringify(product));
+        // Redireccionar a la página de detalle
+        window.location.href = 'producto-detalle.html';
+      }
+    }
+
+    function renderProducts(filtered = []) {
+      const productList = document.getElementById('product-list');
+      productList.innerHTML = '';
+      const items = filtered.length ? filtered : products;
+      items.forEach(product => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.onclick = () => goToProductDetail(product.id);
+        div.innerHTML = `
+          <div class="category-badge">${product.category}</div>
+          <div class="product-img-container">
+            <img src="${product.img}" alt="${product.name}" />
+          </div>
+          <div class="product-content">
+            <div class="product-header">
+              <h3>${product.name}</h3>
+              <i id="heart-${product.id}" class="fas fa-heart heart-icon ${favorites.has(product.id) ? 'active' : ''}" onclick="toggleFavorite(${product.id}, event)"></i>
+            </div>
+            <div class="product-rating">
+              <div class="stars">${getStarRating(product.rating)}</div>
+              <div class="reviews">(${product.reviews} reseñas)</div>
+            </div>
+            <div class="product-price">$${product.price}</div>
+            <div class="product-actions">
+              <button class="add-to-cart" onclick='addToCart(${JSON.stringify(product)}, event)'>
+                <i class="fas fa-shopping-cart"></i> Agregar al carrito
+              </button>
+            </div>
+          </div>
+        `;
+        productList.appendChild(div);
+      });
+    }
+
+    function filterProducts(category) {
+      const filtered = products.filter(product => product.category === category);
+      renderProducts(filtered);
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
